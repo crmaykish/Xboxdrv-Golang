@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/crmaykish/herschel/audio"
 )
 
 const AnalogMax = 32767
@@ -68,12 +70,14 @@ func Control() {
 		var line = scanner.Text()
 		// Length 139 indicates data line, ignore anything else
 		if len(line) == 139 {
+			// Parse controller data
 			state.LeftStick.X, _ = strconv.Atoi(strings.Trim(line[3:9], " "))
 			state.LeftStick.Y, _ = strconv.Atoi(strings.Trim(line[13:19], " "))
 			state.RightStick.X, _ = strconv.Atoi(strings.Trim(line[24:30], " "))
 			state.RightStick.Y, _ = strconv.Atoi(strings.Trim(line[34:40], " "))
-		} else {
-			fmt.Println("BAD: " + line)
+		} else if strings.Contains(line, "[ERROR]") {
+			fmt.Println(line)
+			go audio.Sound("beep")
 		}
 	}
 
