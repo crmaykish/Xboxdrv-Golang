@@ -3,7 +3,7 @@ package xbox
 import (
 	"bufio"
 	"fmt"
-	"log"
+	"io"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -41,18 +41,23 @@ type xbox struct {
 // Xbox holds the state of the xbox controller inputs
 var Xbox xbox
 
+var stdout io.ReadCloser
+
 func Connect() {
-	fmt.Println("Test")
+	fmt.Println("Connecting to Xbox Controller...")
 
 	cmd := exec.Command("xboxdrv")
-	stdout, err := cmd.StdoutPipe()
+	stdout, _ = cmd.StdoutPipe()
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	// TODO: error checking
 
 	cmd.Start()
 
+	fmt.Println("Connected to Xbox Controller.")
+}
+
+func Control() {
+	fmt.Println("Reading Xbox controller input...")
 	scanner := bufio.NewScanner(stdout)
 
 	for scanner.Scan() {
@@ -66,4 +71,5 @@ func Connect() {
 		}
 	}
 
+	fmt.Println("Stopped reading Xbox controller input.")
 }
