@@ -9,6 +9,9 @@ import (
 	"strings"
 )
 
+const AnalogMax = 32767
+const AnalogMin = -32768
+
 type analogStick struct {
 	X int
 	Y int
@@ -38,16 +41,17 @@ type xbox struct {
 	Y            bool
 }
 
-// Xbox holds the state of the xbox controller inputs
-var Xbox xbox
+// Output from xboxdrv program to parse for input
+var rawOutput io.ReadCloser
 
-var stdout io.ReadCloser
+// Last known state of the controller
+var state xbox
 
 func Connect() {
 	fmt.Println("Connecting to Xbox Controller...")
 
 	cmd := exec.Command("xboxdrv")
-	stdout, _ = cmd.StdoutPipe()
+	rawOutput, _ = cmd.StdoutPipe()
 
 	// TODO: error checking
 
@@ -58,18 +62,28 @@ func Connect() {
 
 func Control() {
 	fmt.Println("Reading Xbox controller input...")
-	scanner := bufio.NewScanner(stdout)
+	scanner := bufio.NewScanner(rawOutput)
 
 	for scanner.Scan() {
 		var line = scanner.Text()
 		// Length 139 indicates data line, ignore anything else
 		if len(line) == 139 {
-			Xbox.LeftStick.X, _ = strconv.Atoi(strings.Trim(line[3:9], " "))
-			Xbox.LeftStick.Y, _ = strconv.Atoi(strings.Trim(line[13:19], " "))
-			Xbox.RightStick.X, _ = strconv.Atoi(strings.Trim(line[24:30], " "))
-			Xbox.RightStick.Y, _ = strconv.Atoi(strings.Trim(line[34:40], " "))
+			state.LeftStick.X, _ = strconv.Atoi(strings.Trim(line[3:9], " "))
+			state.LeftStick.Y, _ = strconv.Atoi(strings.Trim(line[13:19], " "))
+			state.RightStick.X, _ = strconv.Atoi(strings.Trim(line[24:30], " "))
+			state.RightStick.Y, _ = strconv.Atoi(strings.Trim(line[34:40], " "))
+		} else {
+			fmt.Println("BAD: " + line)
 		}
 	}
 
 	fmt.Println("Stopped reading Xbox controller input.")
+}
+
+func LeftY() int {
+	return state.LeftStick.Y
+}
+
+func RightY() int {
+	return state.RightStick.Y
 }
