@@ -7,8 +7,6 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
-
-	"github.com/crmaykish/herschel/audio"
 )
 
 const AnalogMax = 32767
@@ -77,7 +75,6 @@ func Control() {
 			state.RightStick.Y, _ = strconv.Atoi(strings.Trim(line[34:40], " "))
 		} else if strings.Contains(line, "[ERROR]") {
 			fmt.Println(line)
-			go audio.Sound("beep")
 		}
 	}
 
